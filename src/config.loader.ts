@@ -75,7 +75,8 @@ export class ConfigLoader {
   }
 
   static buildPath(fileName: string): string {
-    return path.join(global.__baseDir, fileName);
+    const baseDir = global.__baseDir || './';
+    return path.join(baseDir, fileName);
   }
 
   static checkFileExisting(filePathName: string): boolean {

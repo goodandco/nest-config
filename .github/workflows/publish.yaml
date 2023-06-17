@@ -3,6 +3,24 @@ on:
   release:
     types: [ published ]
 jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [ 18.x ]
+    steps:
+
+      - name: Copy repository
+        uses: actions/checkout@v3
+
+      - name: Install npm dependencies
+        run: npm ci
+
+      - name: Lint code
+        run: npm run lint
+
+      - name: Run tests
+        run: npm run test
   build:
     runs-on: ubuntu-latest
     permissions:
