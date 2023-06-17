@@ -3,7 +3,7 @@
   "version": "1.2.0",
   "description": "Config package",
   "author": "Oleksandr Hudenko <oleksandr.hudenko@gmail.com>",
-  "license": "UNLICENSED",
+  "license": "MIT",
   "readmeFilename": "README.md",
   "main": "index.js",
   "types": "index.d.js",
