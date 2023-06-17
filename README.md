@@ -121,3 +121,7 @@ export class ConsumerController {
    ...
 }
 ```
+
+## License
+
+Nest-Config is [MIT licensed](LICENSE).
