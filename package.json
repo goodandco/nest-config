@@ -7,6 +7,15 @@
   "readmeFilename": "README.md",
   "main": "index.js",
   "types": "index.d.js",
+  "keywords": [
+    "nestjs",
+    "config",
+    "nestjs config module",
+    "yaml",
+    "env",
+    "env variables",
+    "nestjs config with env support"
+  ],
   "files": [
     "**/*",
     "*.md"
