@@ -1,0 +1,24 @@
+# compiled output
+dist/
+node_modules/
+
+*.js.map
+*.d.ts
+config.*.js
+
+# Logs
+logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# Tests
+coverage
+.nyc_output
+
+# IDE
+.idea
+.DS_Store
