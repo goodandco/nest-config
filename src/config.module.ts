@@ -14,6 +14,7 @@ export class ConfigModule {
       module: ConfigModule,
       imports: [
         NestConfigModule.forRoot({
+          isGlobal: true,
           load: ConfigLoader.load<TConfigType>(options),
         }),
       ],
