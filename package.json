@@ -7,6 +7,10 @@
   "readmeFilename": "README.md",
   "main": "index.js",
   "types": "index.d.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/goodandco/nest-config.git"
+  },
   "keywords": [
     "nestjs",
     "config",
