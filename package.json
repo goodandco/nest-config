@@ -1,12 +1,12 @@
 {
   "name": "@goodandco/nest-config",
-  "version": "1.2.1",
+  "version": "1.2.2",
   "description": "Config package",
   "author": "Oleksandr Hudenko <oleksandr.hudenko@gmail.com>",
   "license": "MIT",
   "readmeFilename": "README.md",
-  "main": "index.js",
-  "types": "index.d.js",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.js",
   "repository": {
     "type": "git",
     "url": "https://github.com/goodandco/nest-config.git"
