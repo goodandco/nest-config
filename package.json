@@ -1,6 +1,6 @@
 {
   "name": "@goodandco/nest-config",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "Config package",
   "author": "Oleksandr Hudenko <oleksandr.hudenko@gmail.com>",
   "license": "MIT",
