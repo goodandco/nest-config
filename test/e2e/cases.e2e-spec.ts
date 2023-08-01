@@ -7,7 +7,7 @@ global.__baseDir = __dirname + '/fixtures';
 
 type TConfigTest = {
   foo: {
-    bar: string;
+    bar: any;
   };
 };
 
@@ -30,16 +30,36 @@ describe('Config Module', () => {
     expect(configService.get('foo.bar')).toStrictEqual('test');
   });
 
+  it('uses config service successfully with merged config files', async () => {
+    // Arrange
+    const testingModule: TestingModule = await Test.createTestingModule({
+      imports: [
+        ConfigModule.forRoot<TConfigTest>({
+          configNameList: ['configDefault.yaml', 'configEnv.yaml'],
+        }),
+      ],
+    }).compile();
+
+    // Act
+    const app = testingModule.createNestApplication();
+    await app.init();
+    // Assert
+    const configService = app.get(ConfigService);
+    expect(configService.get('custom.config.hello')).toStrictEqual('world');
+  });
+
   it('uses config service in dependency successfully', async () => {
     // Arrange
     @Injectable()
     class TestService {
-      constructor(private configService: ConfigService) {}
+      constructor(private configService: ConfigService) {
+      }
 
       test() {
         return this.configService.get('foo.bar');
       }
     }
+
     const testingModule: TestingModule = await Test.createTestingModule({
       imports: [
         ConfigModule.forRoot<TConfigTest>({
@@ -64,14 +84,17 @@ describe('Config Module', () => {
     } = ConfigLoader.config<TConfigTest>({
       configNameList: ['mockConfig.yaml'],
     });
+
     @Injectable()
     class TestService {
-      constructor(private configService: ConfigService) {}
+      constructor(private configService: ConfigService) {
+      }
 
       test() {
         return this.configService.get('foo.bar') === bar;
       }
     }
+
     const testingModule: TestingModule = await Test.createTestingModule({
       imports: [
         ConfigModule.forRoot({

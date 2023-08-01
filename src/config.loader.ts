@@ -6,13 +6,18 @@ import { ConfigFactory } from '@nestjs/config/dist/interfaces/config-factory.int
 import deepMerge from './config.utils';
 import { TConfigModuleOptions } from './config.types';
 
-let CONFIG: ConfigObject | null = null;
+const { DEBUG_MODE = '0' } = process.env;
+const CONFIG_MAP = new Map<string, ConfigObject>();
+
+function keyGen(list: string[]): string {
+  return list.join('-');
+}
+
 export class ConfigLoader {
   static read<TConfigType extends ConfigObject>(
     configPathName: string,
   ): TConfigType | Partial<TConfigType> {
     try {
-      console.log(configPathName);
       return yaml.load(
         ConfigLoader.replaceEnvVars(readFileSync(configPathName, 'utf8')),
       ) as TConfigType;
@@ -40,16 +45,11 @@ export class ConfigLoader {
     });
   }
 
-  static load<TConfigType extends ConfigObject>(
-    options: TConfigModuleOptions,
-  ): Array<ConfigFactory<TConfigType>> {
+  static calculateConfigFileNames(options: TConfigModuleOptions) {
     const { configNameList = null } = options;
 
-    if (CONFIG) {
-      return [() => CONFIG] as Array<ConfigFactory<TConfigType>>;
-    }
     const { NODE_ENV: env = 'default' } = process.env;
-    console.log('NODE_ENV ', env);
+
     const defaultConfig = `/config/config.yaml`;
     const defaultEnvConfig = `/config/config.${env}.yaml`;
 
@@ -57,21 +57,47 @@ export class ConfigLoader {
       ? [process.argv[process.argv.indexOf('--configPath') + 1]]
       : [defaultConfig, defaultEnvConfig];
 
-    const list = configNameList || defaultConfigNameList;
-    const res = list
+    return (configNameList || defaultConfigNameList)
       .map((configName) => ConfigLoader.buildPath(configName))
       .filter((configPathName) =>
         ConfigLoader.checkFileExisting(configPathName),
-      )
-      .map(
-        (configPathName: string) => () =>
-          ConfigLoader.read<TConfigType>(configPathName),
-      ) as Array<ConfigFactory<TConfigType>>;
+      );
+  }
 
-    const configList: Array<ConfigObject> = res.map((fn) => fn());
-    CONFIG = deepMerge(...configList.reverse());
-    console.log(JSON.stringify(CONFIG));
-    return [() => CONFIG] as Array<ConfigFactory<TConfigType>>;
+  static loadByConfigFileNames<TConfigType extends ConfigObject>(
+    configFileNameList: Array<string>,
+  ): Array<ConfigFactory<TConfigType>> {
+    const { NODE_ENV: env = 'default' } = process.env;
+    const configKey = keyGen(configFileNameList);
+    const existedConfig = CONFIG_MAP.get(configKey);
+
+    if (existedConfig) {
+      return [() => existedConfig] as Array<ConfigFactory<TConfigType>>;
+    }
+
+    const configFactoryList = configFileNameList.map(
+      (configPathName: string) => () =>
+        ConfigLoader.read<TConfigType>(configPathName),
+    ) as Array<ConfigFactory<TConfigType>>;
+
+    const configList: Array<ConfigObject> = configFactoryList.map((fn) => fn());
+    const configResult: TConfigType = deepMerge(...configList.reverse());
+    CONFIG_MAP.set(configKey, configResult);
+    if (DEBUG_MODE === '1') {
+      console.log('NODE_ENV ', env);
+      console.log(`Considered config files: `, configFileNameList);
+      console.log('Result config: ', JSON.stringify(configResult));
+    }
+
+    return [() => configResult] as Array<ConfigFactory<TConfigType>>;
+  }
+
+  static load<TConfigType extends ConfigObject>(
+    options: TConfigModuleOptions,
+  ): Array<ConfigFactory<TConfigType>> {
+    const configFileNames = ConfigLoader.calculateConfigFileNames(options);
+
+    return ConfigLoader.loadByConfigFileNames(configFileNames);
   }
 
   static buildPath(fileName: string): string {
@@ -91,10 +117,23 @@ export class ConfigLoader {
   static config<TConfigType extends ConfigObject>(
     options?: TConfigModuleOptions,
   ): TConfigType {
-    if (!CONFIG) {
-      ConfigLoader.load<TConfigType>(options);
+    const configFileNames = ConfigLoader.calculateConfigFileNames(options);
+    const configKey = keyGen(configFileNames);
+    const existed = CONFIG_MAP.get(configKey);
+    if (existed) {
+      return existed as TConfigType;
     }
 
-    return CONFIG as TConfigType;
+    ConfigLoader.loadByConfigFileNames(configFileNames);
+
+    const result = CONFIG_MAP.get(configKey) as TConfigType;
+
+    if (!result) {
+      throw new Error(
+        'There is a problem with loading the config. Try to run with DEBUG_MODE=1 to debug.',
+      );
+    }
+
+    return result as TConfigType;
   }
 }
